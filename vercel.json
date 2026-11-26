@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/index?route=inicio"
+    },
+    {
+      "source": "/entrar",
+      "destination": "/api/index?route=entrar"
+    },
+    {
+      "source": "/cadastro",
+      "destination": "/api/index?route=cadastro"
+    },
+    {
+      "source": "/painel",
+      "destination": "/api/index?route=painel"
+    },
+    {
+      "source": "/conferidor",
+      "destination": "/api/index?route=conferidor"
+    },
+    {
+      "source": "/perfil",
+      "destination": "/api/index?route=perfil"
+    },
+    {
+      "source": "/sair",
+      "destination": "/api/index?route=sair"
+    }
+  ]
+}
