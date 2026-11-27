@@ -29,5 +29,7 @@
       "source": "/sair",
       "destination": "/api/index?route=sair"
     }
-  ]
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "public"
 }
