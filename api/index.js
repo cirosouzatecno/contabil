@@ -92,7 +92,7 @@ label{display:block;font-weight:650;font-size:.9rem;margin:1rem 0 .35rem}input{w
 button,.button{display:inline-flex;justify-content:center;align-items:center;border:1px solid transparent;border-radius:.55rem;background:var(--purple);color:#190d2c;padding:.65rem .9rem;text-decoration:none;font-weight:720;cursor:pointer}button:hover,.button:hover{filter:brightness(1.08)}button:disabled{opacity:.45;cursor:not-allowed}.secondary,.out{background:#20212a;color:var(--ink);border-color:#434450}.login-button{width:100%;margin:1.25rem 0 .85rem}
 .notice{border:1px solid #47563f;background:#182318;border-radius:.6rem;padding:.8rem;margin:1rem 0;color:#daf4d0}.notice.error{background:#301b22;border-color:#7e414f;color:#ffd4dc}
 .shell{min-height:100dvh;display:grid;grid-template-columns:15.5rem minmax(0,1fr)}.rail{border-right:1px solid var(--line);background:#0d0e12;padding:1.45rem 1rem}.rail .brand{padding:0 .5rem}.rail nav{margin-top:2.5rem}.menu-group{margin:1.5rem .6rem .45rem;color:var(--muted);font-size:.75rem;font-weight:690;text-transform:uppercase;letter-spacing:.075em}.rail nav a{display:block;color:#dfdce8;text-decoration:none;padding:.6rem .62rem;border:1px solid transparent;border-radius:.5rem;margin-bottom:.25rem;font-size:.93rem}.rail nav a:hover{background:#20212a}.rail nav a[aria-current]{background:#211a32;color:#dfccff;border-color:#403251}
-.workspace{min-width:0}.top{min-height:4.35rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:0 clamp(1rem,4vw,3rem);background:#101116}.top .email{margin:0;min-width:0;overflow-wrap:anywhere;font-size:.89rem}.content{max-width:76rem;margin:auto;padding:clamp(1.25rem,4vw,3.8rem)}.page-intro{margin-bottom:1.65rem;max-width:65ch}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:1rem}.card{background:var(--surface);border:1px solid var(--line);padding:clamp(1rem,3vw,1.5rem);border-radius:.8rem;margin-bottom:1rem}.card p:last-child{margin-bottom:0}.card form{max-width:40rem}.card form button{margin-top:1rem}.actions{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}.actions button,.actions .button{margin-top:0}.hint{color:var(--muted);font-size:.88rem}.field-group{margin-bottom:1rem}.results{overflow:auto;margin-top:1rem}table{width:100%;border-collapse:collapse;text-align:left;font-size:.88rem}th,td{padding:.65rem;vertical-align:top;border-bottom:1px solid var(--line)}th{color:#dedbe9}td{overflow-wrap:anywhere;min-width:6rem}.file-cell{min-width:10rem}.key-cell{font-family:ui-monospace,monospace;min-width:12rem}summary{cursor:pointer;font-weight:650}.integration-link{display:inline-block;margin-top:.15rem}[hidden]{display:none!important}
+.workspace{min-width:0}.top{min-height:4.35rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:0 clamp(1rem,4vw,3rem);background:#101116}.top .email{margin:0;min-width:0;overflow-wrap:anywhere;font-size:.89rem}.content{max-width:76rem;margin:auto;padding:clamp(1.25rem,4vw,3.8rem)}.page-intro{margin-bottom:1.65rem;max-width:65ch}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:1rem}.card{background:var(--surface);border:1px solid var(--line);padding:clamp(1rem,3vw,1.5rem);border-radius:.8rem;margin-bottom:1rem}.card p:last-child{margin-bottom:0}.card form{max-width:40rem}.card form button{margin-top:1rem}.actions{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}.actions button,.actions .button{margin-top:0}.hint{color:var(--muted);font-size:.88rem}.field-group{margin-bottom:1rem}.results{overflow:auto;margin-top:1rem}table{width:100%;border-collapse:collapse;text-align:left;font-size:.88rem}th,td{padding:.65rem;vertical-align:top;border-bottom:1px solid var(--line)}th{color:#dedbe9}td{overflow-wrap:anywhere;min-width:6rem}.file-cell{min-width:10rem}td:last-child{min-width:16rem}td ul{padding-left:1.1rem;margin:0}td li+li{margin-top:.4rem}.key-cell{font-family:ui-monospace,monospace;min-width:12rem}summary{cursor:pointer;font-weight:650}.integration-link{display:inline-block;margin-top:.15rem}[hidden]{display:none!important}
 @media(max-width:760px){.auth,.shell{display:block}.intro{padding:1.1rem}.intro h2{display:none}.auth-content{padding:2rem 1.15rem}.rail{border-right:0;border-bottom:1px solid var(--line);padding:1rem}.rail nav{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.75rem}.rail nav a{margin:0}.menu-group{display:none}.top{min-height:3.7rem}.content{padding-top:1.45rem}}
 `;
 const fiscalScript = String.raw`'use strict';
@@ -152,6 +152,10 @@ function parseXml(file, xml) {
 
   const nfe = root.localName === 'NFe' ? root : root.localName === 'nfeProc' ? child(root, 'NFe') : null;
   const info = child(nfe, 'infNFe');
+  if (root.namespaceURI === NFE_NS && ['NFe', 'nfeProc'].includes(root.localName)) {
+    const version = info?.getAttribute('versao') || root.getAttribute('versao');
+    if (!version || version === '4.00') row.schemaRoot = root.localName;
+  }
   if (root.namespaceURI !== NFE_NS || !info) {
     row.issues.push('Estrutura NF-e não encontrada.');
     return row;
@@ -258,7 +262,7 @@ function displayMoney(amount) {
 
 function renderResults(container, rows) {
   const table = create('table');
-  const headings = ['Arquivo', 'Chave', 'NF / Emissão', 'Protocolo', 'IBS no XML', 'CBS no XML', 'IBS no CSV', 'CBS no CSV', 'Resultado'];
+  const headings = ['Arquivo', 'Chave', 'NF / Emissão', 'Protocolo', 'IBS no XML', 'CBS no XML', 'IBS no CSV', 'CBS no CSV', 'Leiaute XSD', 'Resultado'];
   const header = table.createTHead().insertRow();
   for (const title of headings) {
     const cell = create('th', title);
@@ -268,13 +272,18 @@ function renderResults(container, rows) {
   const body = table.createTBody();
   for (const row of rows) {
     const values = [row.file, row.key, [row.number, row.date.slice(0, 10)].filter(Boolean).join(' / '), row.protocol,
-      displayMoney(row.ibs), displayMoney(row.cbs), displayMoney(row.referenceIbs), displayMoney(row.referenceCbs),
+      displayMoney(row.ibs), displayMoney(row.cbs), displayMoney(row.referenceIbs), displayMoney(row.referenceCbs), row.xsdStatus ?? '—',
       row.issues.join(' ') || 'Sem divergências nas verificações realizadas.'];
     const line = body.insertRow();
     for (const [index, text] of values.entries()) {
       const cell = create('td', text || '—');
       if (index === 0) cell.className = 'file-cell';
       if (index === 1) cell.className = 'key-cell';
+      if (index === values.length - 1 && row.issues.length > 1) {
+        const list = create('ul');
+        for (const issue of row.issues) list.append(create('li', issue));
+        cell.replaceChildren(list);
+      }
       line.append(cell);
     }
   }
@@ -291,9 +300,9 @@ function csvCell(content) {
 function exportRows(rows) {
   const money = (amount) => amount == null ? '' : (amount / 100).toFixed(2).replace('.', ',');
   const content = [
-    ['arquivo', 'chave', 'numero', 'emissao', 'protocolo', 'ibs_xml', 'cbs_xml', 'ibs_csv', 'cbs_csv', 'resultado'],
+    ['arquivo', 'chave', 'numero', 'emissao', 'protocolo', 'ibs_xml', 'cbs_xml', 'ibs_csv', 'cbs_csv', 'leiaute_xsd', 'resultado'],
     ...rows.map((row) => [row.file, row.key, row.number, row.date, row.protocol, money(row.ibs), money(row.cbs),
-      money(row.referenceIbs), money(row.referenceCbs), row.issues.join(' ') || 'Sem divergências nas verificações realizadas.']),
+      money(row.referenceIbs), money(row.referenceCbs), row.xsdStatus, row.issues.join(' ') || 'Sem divergências nas verificações realizadas.']),
   ].map((row) => row.map(csvCell).join(';')).join('\r\n');
   const url = URL.createObjectURL(new Blob(['\uFEFF', content], { type: 'text/csv;charset=utf-8' }));
   const download = create('a');
@@ -351,11 +360,26 @@ function wireValidation() {
       if (csv?.size > MAX_REFERENCE) throw new Error('A planilha deve ter até 2 MB.');
       const reference = csv ? parseReference(await csv.text()) : null;
       const rows = [];
-      for (const file of batch) {
+      for (const [index, file] of batch.entries()) {
+        result.textContent = 'Analisando XML ' + (index + 1) + ' de ' + batch.length + '…';
         if (file.size > MAX_FILE) {
           rows.push({ file: file.name, key: '', number: '', date: '', protocol: '', issues: ['Arquivo acima de 5 MB.'] });
         } else {
-          rows.push(parseXml(file.name, await file.text()));
+          const xml = await file.text();
+          const row = parseXml(file.name, xml);
+          row.xsdStatus = 'Não aplicável';
+          if (row.schemaRoot) {
+            try {
+              const { checkLayout } = await import('/nfe-xsd/validator.mjs');
+              const layout = await checkLayout(row.schemaRoot, xml);
+              row.xsdStatus = layout.status;
+              row.issues.push(...layout.issues);
+            } catch {
+              row.xsdStatus = 'Indisponível';
+              row.issues.push('Não foi possível executar o validador XSD neste navegador. Tente novamente em um navegador atualizado.');
+            }
+          }
+          rows.push(row);
         }
       }
       report = compareRows(rows, reference);
@@ -459,7 +483,7 @@ function pageContent(page, session, name, message, error) {
         '" target="_blank" rel="noopener noreferrer" hidden>Abrir consulta na SEFAZ</a></section>' +
         '<p class="hint">A chave é conferida aqui. Para verificar a autorização ou o cancelamento, conclua a consulta no portal oficial.</p>';
     case 'xml':
-      return '<h1>Validar e conferir XML</h1><p class="page-intro">Confira a estrutura básica, a chave, o protocolo e os valores de IBS e CBS informados na NF-e modelo 55.</p>' +
+      return '<h1>Validar e conferir XML</h1><p class="page-intro">Valide o leiaute da NF-e modelo 55 (versão 4.00) e confira a chave, o protocolo e os totais de IBS e CBS.</p>' +
         '<section class="card"><form id="xml-form"><div class="field-group"><label for="xml-files">Arquivos XML</label>' +
         '<input id="xml-files" type="file" accept=".xml,text/xml,application/xml" multiple><p class="hint">Até 50 arquivos por lote, com até 5 MB por arquivo. Os documentos são processados neste navegador.</p></div>' +
         '<div class="field-group"><label for="ref-file">Planilha de referência (opcional)</label>' +
@@ -467,7 +491,7 @@ function pageContent(page, session, name, message, error) {
         '<a href="/conferidor?recurso=modelo" download>Baixar modelo CSV</a></div>' +
         '<div class="actions"><button type="submit">Analisar lote</button><button id="baixar-csv" class="secondary" type="button" hidden>Baixar relatório CSV</button></div></form>' +
         '<p id="xml-resultado" role="status" class="hint"></p><div class="results" tabindex="0" aria-label="Resultados da conferência" id="xml-tabela" hidden></div></section>' +
-        '<p class="hint">A conferência identifica divergências nos arquivos. A validade da assinatura, o esquema XSD completo e a situação atual na SEFAZ exigem verificações próprias.</p>';
+        '<p class="hint">O leiaute é verificado com o pacote oficial PL 010h v1.03. A assinatura digital e a situação atual na SEFAZ são verificações separadas.</p>';
     default:
       return '<h1>Integrações fiscais</h1><p class="page-intro">Referências para automatizar a consulta de situação e a obtenção de XMLs autorizados.</p>' +
         '<div class="tiles"><section class="card"><h2>SEFAZ</h2><p>Use o NFeConsultaProtocolo para consultar situação pela chave e o NFeDistribuicaoDFe para buscar documentos de interesse do CNPJ habilitado. A integração exige certificado digital.</p>' +
@@ -536,7 +560,7 @@ module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'private, no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'same-origin');
-  res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+  res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname.replace(/^\/+|\/+$/g, '');
