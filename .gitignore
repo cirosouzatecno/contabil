@@ -1,0 +1,4 @@
+/node_modules/
+/public/nfe-xsd/
+/.vercel/
+.env*.local
